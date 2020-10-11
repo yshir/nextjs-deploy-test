@@ -1,0 +1,49 @@
+on:
+  push:
+    branches:
+      - master
+
+name: Auto Deploy
+
+jobs:
+  deploy-prod:
+    name: Auto Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+
+      # - name: Rename serverless.yml
+      #   uses: canastro/copy-file-action@master
+      #   with:
+      #     source: "serverless-prod.yml"
+      #     target: "serverless.yml"
+
+      - name: Install serverless framework
+        run: npm i -g serverless
+
+      - name: Serverless AWS authentication
+        run: serverless --component=serverless-next config credentials --provider aws --key ${{ secrets.AWS_ACCESS_KEY_ID }} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Deploy to AWS
+        run: serverless
+
+
+      - name: Notify result to slack
+        uses: homoluctus/slatify@master
+        if: always()
+        with:
+          type: ${{ job.status }}
+          job_name: '*Deploy to AWS*'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
