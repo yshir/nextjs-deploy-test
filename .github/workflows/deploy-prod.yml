@@ -49,7 +49,10 @@ jobs:
             --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Download `.serverless` state from s3
-        run: aws s3 sync ${{ env.S3_PATH }} ${{ env.CLIENT_PATH }} --delete && true
+        run: aws s3 sync $S3_PATH $CLIENT_PATH --delete && true
+        env:
+          S3_PATH: ${{ env.S3_PATH }}
+          CLIENT_PATH: ${{ env.CLIENT_PATH }}
 
       - name: Deploy to AWS
         run: serverless
@@ -62,9 +65,15 @@ jobs:
               --region ${{ env.S3_REGION }} \
               --create-bucket-configuration LocationConstraint=${{ env.S3_REGION }}
           fi
+        env:
+          S3_BUCKET: ${{ env.S3_BUCKET }}
+          S3_REGION: ${{ env.S3_REGION }}
 
       - name: Upload `.serverless` state to s3
         run: aws s3 sync ${{ env.CLIENT_PATH }} ${{ env.S3_PATH }} --delete
+        env:
+          CLIENT_PATH: ${{ env.CLIENT_PATH }}
+          S3_PATH: ${{ env.S3_PATH }}
 
       - name: Notify result to slack
         uses: homoluctus/slatify@master
