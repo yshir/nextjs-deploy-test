@@ -1,9 +1,15 @@
+name: Auto Deploy
+
 on:
   push:
     branches:
       - master
 
-name: Auto Deploy
+env:
+  S3_REGION: ap-northeast-1
+  S3_BUCKET: nextjs-deploy-test--serverless-state
+  S3_PATH: s3://${{ env.S3_BUCKET }}/prod/.serverless
+  CLIENT_PATH: ".serverless"
 
 jobs:
   deploy-prod:
@@ -33,16 +39,32 @@ jobs:
       - name: Install dependencies
         run: |
           npm i -g serverless
-          npm i
+          npm ci
 
       - name: Serverless AWS authentication
-        run: serverless --component=serverless-next config credentials --provider aws --key ${{ secrets.AWS_ACCESS_KEY_ID }} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          serverless --component=serverless-next config credentials \
+            --provider aws \
+            --key ${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Download `.serverless` state from s3
+        run: aws s3 sync ${{ env.S3_PATH }} ${{ env.CLIENT_PATH }} --delete && true
 
       - name: Deploy to AWS
-        run: |
-          ls -l ./scripts/deploy.sh
-          sh ./scripts/deploy.sh
+        run: serverless
 
+      - name: Create s3 bucket if not exists
+        run: |
+          if ! aws s3api head-bucket --bucket ${{ env.S3_BUCKET }} 2>/dev/null; then
+            aws s3api create-bucket \
+              --bucket ${{ env.S3_BUCKET }} \
+              --region ${{ env.S3_REGION }} \
+              --create-bucket-configuration LocationConstraint=${{ env.S3_REGION }}
+          fi
+
+      - name: Upload `.serverless` state to s3
+        run: aws s3 sync ${{ env.CLIENT_PATH }} ${{ env.S3_PATH }} --delete
 
       - name: Notify result to slack
         uses: homoluctus/slatify@master
