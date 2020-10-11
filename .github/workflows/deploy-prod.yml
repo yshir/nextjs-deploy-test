@@ -48,7 +48,10 @@ jobs:
             --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Download `.serverless` state from s3
-        run: aws s3 sync $S3_PATH $CLIENT_PATH --delete && true
+        run: |
+          if ! aws s3 sync $S3_PATH $CLIENT_PATH --delete 2>/dev/null; then
+            echo "[Warning] Resource does not exist. Download skipped"
+          fi
         env:
           S3_PATH: s3://${{ env.S3_BUCKET }}/prod/.serverless
           CLIENT_PATH: ${{ env.CLIENT_PATH }}
