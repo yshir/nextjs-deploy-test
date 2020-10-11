@@ -1,8 +1,8 @@
 myNextApplication:
   component: serverless-next.js@1.14.0
   inputs:
-    name: nextjs-deploy-test-lambda
-    bucketName: nextjs-deploy-test-bucket
+    name: nextjs-deploy-test-lambda--prod
+    bucketName: nextjs-deploy-test-bucket--prod
     bucketRegion: ap-northeast-1
     runtime: nodejs12.x
     publicDirectoryCache: true

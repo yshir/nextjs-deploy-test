@@ -29,11 +29,11 @@ jobs:
         with:
           node-version: '12.x'
 
-      # - name: Rename serverless.yml
-      #   uses: canastro/copy-file-action@master
-      #   with:
-      #     source: "serverless-prod.yml"
-      #     target: "serverless.yml"
+      - name: Rename serverless.yml
+        uses: canastro/copy-file-action@master
+        with:
+          source: "serverless-prod.yml"
+          target: "serverless.yml"
 
       - name: Install dependencies
         run: |
