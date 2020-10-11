@@ -1,0 +1,7 @@
+myNextApplication:
+  component: serverless-next.js
+  inputs:
+    name: nextjs-deploy-test-lambda
+    bucketName: nextjs-deploy-test-bucket
+    bucketRegion: ap-northeast-1
+    runtime: nodejs12.x
