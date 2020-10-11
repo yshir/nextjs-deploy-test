@@ -1,0 +1,1 @@
+- [serverless-next.js](https://www.serverless.com/plugins/serverless-nextjs-plugin)
