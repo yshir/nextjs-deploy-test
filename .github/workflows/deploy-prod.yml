@@ -8,7 +8,6 @@ on:
 env:
   S3_REGION: ap-northeast-1
   S3_BUCKET: nextjs-deploy-test--serverless-state
-  S3_PATH: s3://${{ env.S3_BUCKET }}/prod/.serverless
   CLIENT_PATH: ".serverless"
 
 jobs:
@@ -51,7 +50,7 @@ jobs:
       - name: Download `.serverless` state from s3
         run: aws s3 sync $S3_PATH $CLIENT_PATH --delete && true
         env:
-          S3_PATH: ${{ env.S3_PATH }}
+          S3_PATH: s3://${{ env.S3_BUCKET }}/prod/.serverless
           CLIENT_PATH: ${{ env.CLIENT_PATH }}
 
       - name: Deploy to AWS
@@ -59,21 +58,21 @@ jobs:
 
       - name: Create s3 bucket if not exists
         run: |
-          if ! aws s3api head-bucket --bucket ${{ env.S3_BUCKET }} 2>/dev/null; then
+          if ! aws s3api head-bucket --bucket $S3_BUCKET 2>/dev/null; then
             aws s3api create-bucket \
-              --bucket ${{ env.S3_BUCKET }} \
-              --region ${{ env.S3_REGION }} \
-              --create-bucket-configuration LocationConstraint=${{ env.S3_REGION }}
+              --bucket $S3_BUCKET \
+              --region $S3_REGION \
+              --create-bucket-configuration LocationConstraint=$S3_REGION
           fi
         env:
           S3_BUCKET: ${{ env.S3_BUCKET }}
           S3_REGION: ${{ env.S3_REGION }}
 
       - name: Upload `.serverless` state to s3
-        run: aws s3 sync ${{ env.CLIENT_PATH }} ${{ env.S3_PATH }} --delete
+        run: aws s3 sync $CLIENT_PATH $S3_PATH --delete
         env:
           CLIENT_PATH: ${{ env.CLIENT_PATH }}
-          S3_PATH: ${{ env.S3_PATH }}
+          S3_PATH: s3://${{ env.S3_BUCKET }}/prod/.serverless
 
       - name: Notify result to slack
         uses: homoluctus/slatify@master
