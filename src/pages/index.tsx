@@ -14,7 +14,7 @@ const IndexPage: React.FC = () => {
   return (
     <>
       <div>
-        <h1>post list</h1>
+        <h1>posts</h1>
         {posts.map(post => (
           <div
             key={post.id}
